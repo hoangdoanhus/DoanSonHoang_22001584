@@ -1,0 +1,13 @@
+# Tài liệu đề bài (không đưa lên repo)
+docs/
+
+# PHP
+vendor/
+composer.lock
+*.log
+
+# IDE / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
