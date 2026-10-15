@@ -4,13 +4,21 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/common/dbConnect.php';
 require_once __DIR__ . '/common/functions.php';
+require_once __DIR__ . '/common/auth.php';
 require_once __DIR__ . '/model/product.php';
+
+requireLogin();
 
 $pageTitle = 'Thêm sản phẩm';
 $errors = [];
 $form = ['name' => '', 'price' => '', 'quantity' => ''];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isCsrfValid()) {
+        setFlash('Phiên làm việc đã hết hạn, vui lòng thử lại.', 'error');
+        redirect('product_list.php');
+    }
+
     $form = [
         'name'     => postString('name'),
         'price'    => postString('price'),
@@ -41,6 +49,7 @@ require __DIR__ . '/view/header.php';
 <?php endif; ?>
 
     <form method="post" action="product_add.php">
+        <?= csrfField() ?>
         <p>
             <label for="name">Tên sản phẩm</label>
             <input type="text" id="name" name="name" maxlength="100" value="<?= e($form['name']) ?>">

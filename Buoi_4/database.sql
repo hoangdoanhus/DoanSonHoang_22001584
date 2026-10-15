@@ -27,3 +27,25 @@ INSERT INTO products (name, price, quantity) VALUES
     ('Dây cáp USB-C',        75000.00,  0);
 
 SELECT * FROM products;
+
+-- Bảng tài khoản đăng nhập
+
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+    id       INT          NOT NULL AUTO_INCREMENT,
+    username VARCHAR(50)  NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_users_username (username)
+);
+
+-- Tài khoản mẫu dùng để thử chức năng đăng nhập:
+--   username: admin
+--   password: admin123
+-- Giá trị bên dưới là kết quả của password_hash('admin123', PASSWORD_DEFAULT),
+-- database không lưu mật khẩu dạng văn bản thuần.
+INSERT INTO users (username, password) VALUES
+    ('admin', '$2y$10$6nwlrYuAxcZgweJ8HeI5XuzwZTEo64t1QPkQ6lcHVa11cMQD8NphC');
+
+SELECT id, username, LEFT(password, 7) AS password_prefix FROM users;

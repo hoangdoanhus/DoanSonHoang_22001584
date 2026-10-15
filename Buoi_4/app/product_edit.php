@@ -4,10 +4,19 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/common/dbConnect.php';
 require_once __DIR__ . '/common/functions.php';
+require_once __DIR__ . '/common/auth.php';
 require_once __DIR__ . '/model/product.php';
+
+requireLogin();
 
 $pageTitle = 'Sửa sản phẩm';
 $isPost = $_SERVER['REQUEST_METHOD'] === 'POST';
+
+if ($isPost && !isCsrfValid()) {
+    setFlash('Phiên làm việc đã hết hạn, vui lòng thử lại.', 'error');
+    redirect('product_list.php');
+}
+
 $id = parseId($isPost ? ($_POST['id'] ?? null) : ($_GET['id'] ?? null));
 
 if ($id === null) {
@@ -81,6 +90,7 @@ require __DIR__ . '/view/header.php';
     </table>
 
     <form method="post" action="product_edit.php">
+        <?= csrfField() ?>
         <input type="hidden" name="id" value="<?= (int) $id ?>">
         <p>
             <label for="name">Tên sản phẩm</label>

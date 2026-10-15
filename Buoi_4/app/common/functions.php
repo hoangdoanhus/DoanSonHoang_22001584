@@ -5,6 +5,10 @@ declare(strict_types=1);
 const MAX_PRICE = 99999999.99;
 const MAX_QUANTITY = 2147483647;
 const MAX_NAME_LENGTH = 100;
+const MIN_USERNAME_LENGTH = 3;
+const MAX_USERNAME_LENGTH = 50;
+const MIN_PASSWORD_LENGTH = 6;
+const MAX_PASSWORD_LENGTH = 72;
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -28,9 +32,17 @@ function redirect(string $page): void
 
 function postString(string $key): string
 {
+    return trim(postRaw($key));
+}
+
+/**
+ * Lấy dữ liệu POST mà không cắt khoảng trắng, dùng cho mật khẩu.
+ */
+function postRaw(string $key): string
+{
     $value = $_POST[$key] ?? '';
 
-    return is_scalar($value) ? trim((string) $value) : '';
+    return is_scalar($value) ? (string) $value : '';
 }
 
 function parseId(mixed $value): ?int
@@ -112,4 +124,60 @@ function validateProductInput(string $name, string $price, string $quantity): ar
         'price'    => $parsedPrice,
         'quantity' => $parsedQuantity,
     ];
+}
+
+function csrfToken(): string
+{
+    if (!isset($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+
+    return $_SESSION['csrf_token'];
+}
+
+function csrfField(): string
+{
+    return '<input type="hidden" name="csrf_token" value="' . e(csrfToken()) . '">';
+}
+
+function isCsrfValid(): bool
+{
+    $token = $_POST['csrf_token'] ?? '';
+
+    return is_string($token) && $token !== '' && hash_equals(csrfToken(), $token);
+}
+
+/**
+ * @return string[]
+ */
+function validateRegistration(string $username, string $password, string $passwordConfirm): array
+{
+    $errors = [];
+
+    if ($username === '') {
+        $errors[] = 'Tên đăng nhập không được để trống.';
+    } elseif (preg_match('/^[A-Za-z0-9_]+$/', $username) !== 1) {
+        $errors[] = 'Tên đăng nhập chỉ được gồm chữ cái, chữ số và dấu gạch dưới.';
+    } elseif (strlen($username) < MIN_USERNAME_LENGTH || strlen($username) > MAX_USERNAME_LENGTH) {
+        $errors[] = sprintf(
+            'Tên đăng nhập phải dài từ %d đến %d ký tự.',
+            MIN_USERNAME_LENGTH,
+            MAX_USERNAME_LENGTH
+        );
+    }
+
+    if ($password === '') {
+        $errors[] = 'Mật khẩu không được để trống.';
+    } elseif (strlen($password) < MIN_PASSWORD_LENGTH) {
+        $errors[] = 'Mật khẩu phải có ít nhất ' . MIN_PASSWORD_LENGTH . ' ký tự.';
+    } elseif (strlen($password) > MAX_PASSWORD_LENGTH) {
+        // bcrypt chỉ dùng 72 byte đầu, mật khẩu dài hơn sẽ bị cắt âm thầm.
+        $errors[] = 'Mật khẩu không được dài hơn ' . MAX_PASSWORD_LENGTH . ' byte.';
+    }
+
+    if ($passwordConfirm !== $password) {
+        $errors[] = 'Mật khẩu nhập lại không khớp.';
+    }
+
+    return $errors;
 }
