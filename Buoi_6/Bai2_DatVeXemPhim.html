@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bài 2 - Đặt vé xem phim</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>Đặt vé xem phim</h1>
+        <p>Phim: <strong>{{ tenPhim }}</strong></p>
+
+        <form @submit.prevent="datVe">
+            <div class="dong">
+                <label for="ho-ten">Họ tên khách hàng</label>
+                <input id="ho-ten" type="text" v-model.trim="hoTen" placeholder="Nhập họ tên"
+                    @input="daNhapHoTen = true">
+                <p class="loi" v-if="daNhapHoTen && !hoTen">Họ tên không được để trống.</p>
+            </div>
+
+            <div class="dong">
+                <label for="suat-chieu">Suất chiếu</label>
+                <select id="suat-chieu" v-model="maSuatChieu">
+                    <option v-for="suat in dsSuatChieu" :key="suat.ma" :value="suat.ma">
+                        {{ suat.nhan }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="dong">
+                <label>Loại vé</label>
+                <label class="chon" v-for="ve in dsLoaiVe" :key="ve.ma">
+                    <input type="radio" :value="ve.ma" v-model="maLoaiVe">
+                    {{ ve.ten }} - {{ dinhDangTien(ve.gia) }}
+                </label>
+            </div>
+
+            <div class="dong">
+                <label for="so-luong">Số lượng vé (1 - 10)</label>
+                <button type="button" class="phu" @click="giamSoLuong" :disabled="soLuong <= 1">-</button>
+                <input id="so-luong" type="number" min="1" max="10" step="1" v-model.number="soLuong">
+                <button type="button" class="phu" @click="tangSoLuong" :disabled="soLuong >= 10">+</button>
+                <p class="loi" v-if="loiSoLuong">{{ loiSoLuong }}</p>
+            </div>
+
+            <div class="dong">
+                <label class="chon">
+                    <input type="checkbox" v-model="comboBapNuoc">
+                    Combo bắp nước ({{ dinhDangTien(giaCombo) }} / đơn)
+                </label>
+            </div>
+
+            <p>Tạm tính: <span class="tong-tien">{{ dinhDangTien(tongTien) }}</span></p>
+
+            <div class="nhom-nut">
+                <button type="submit" :disabled="!choPhepDatVe">Đặt vé</button>
+                <button type="button" class="phu" @click="datLaiForm">Đặt lại</button>
+            </div>
+        </form>
+
+        <div class="hoa-don" v-if="xacNhan">
+            <h3>Xác nhận đặt vé</h3>
+            <table>
+                <tr>
+                    <td>Khách hàng</td>
+                    <td class="phai"><strong>{{ xacNhan.hoTen }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Suất chiếu</td>
+                    <td class="phai">{{ xacNhan.suatChieu }}</td>
+                </tr>
+                <tr>
+                    <td>{{ xacNhan.tenLoaiVe }}</td>
+                    <td class="phai">{{ dinhDangTien(xacNhan.giaVe) }} x {{ xacNhan.soLuong }}</td>
+                </tr>
+                <tr v-if="xacNhan.tienCombo > 0">
+                    <td>Combo bắp nước</td>
+                    <td class="phai">{{ dinhDangTien(xacNhan.tienCombo) }}</td>
+                </tr>
+                <tr>
+                    <td>Tổng tiền</td>
+                    <td class="phai tong-tien">{{ dinhDangTien(xacNhan.tongTien) }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        Vue.createApp({
+            data() {
+                return {
+                    tenPhim: "Mắt biếc",
+                    giaCombo: 45000,
+                    dsSuatChieu: [
+                        { ma: "s1", nhan: "09:00 - Thứ Bảy 01/11" },
+                        { ma: "s2", nhan: "14:30 - Thứ Bảy 01/11" },
+                        { ma: "s3", nhan: "19:45 - Chủ Nhật 02/11" }
+                    ],
+                    dsLoaiVe: [
+                        { ma: "thuong", ten: "Vé thường", gia: 70000 },
+                        { ma: "vip", ten: "Vé VIP", gia: 100000 }
+                    ],
+                    hoTen: "",
+                    daNhapHoTen: false,
+                    maSuatChieu: "s1",
+                    maLoaiVe: "thuong",
+                    soLuong: 1,
+                    comboBapNuoc: false,
+                    xacNhan: null
+                };
+            },
+            computed: {
+                loaiVeDangChon() {
+                    return this.dsLoaiVe.find(ve => ve.ma === this.maLoaiVe);
+                },
+                giaVe() {
+                    return this.loaiVeDangChon ? this.loaiVeDangChon.gia : 0;
+                },
+                suatChieuDangChon() {
+                    const suat = this.dsSuatChieu.find(s => s.ma === this.maSuatChieu);
+
+                    return suat ? suat.nhan : "";
+                },
+                soLuongHopLe() {
+                    return Number.isInteger(this.soLuong) && this.soLuong >= 1 && this.soLuong <= 10;
+                },
+                loiSoLuong() {
+                    // v-model.number cho chuỗi rỗng khi ô trống, cho số thực khi gõ 2.5.
+                    if (this.soLuong === "" || this.soLuong === null) {
+                        return "Vui lòng nhập số lượng vé.";
+                    }
+
+                    if (typeof this.soLuong !== "number" || Number.isNaN(this.soLuong)) {
+                        return "Số lượng vé phải là số.";
+                    }
+
+                    if (!Number.isInteger(this.soLuong)) {
+                        return "Số lượng vé phải là số nguyên.";
+                    }
+
+                    if (this.soLuong < 1 || this.soLuong > 10) {
+                        return "Số lượng vé chỉ từ 1 đến 10.";
+                    }
+
+                    return "";
+                },
+                tienCombo() {
+                    return this.comboBapNuoc ? this.giaCombo : 0;
+                },
+                tongTien() {
+                    if (!this.soLuongHopLe) {
+                        return 0;
+                    }
+
+                    return this.giaVe * this.soLuong + this.tienCombo;
+                },
+                choPhepDatVe() {
+                    return this.hoTen !== "" && this.soLuongHopLe;
+                }
+            },
+            methods: {
+                dinhDangTien(soTien) {
+                    return soTien.toLocaleString("vi-VN") + " đ";
+                },
+                tangSoLuong() {
+                    if (!Number.isInteger(this.soLuong)) {
+                        this.soLuong = 1;
+                        return;
+                    }
+
+                    if (this.soLuong < 10) {
+                        this.soLuong++;
+                    }
+                },
+                giamSoLuong() {
+                    if (!Number.isInteger(this.soLuong)) {
+                        this.soLuong = 1;
+                        return;
+                    }
+
+                    if (this.soLuong > 1) {
+                        this.soLuong--;
+                    }
+                },
+                datLaiForm() {
+                    this.hoTen = "";
+                    this.daNhapHoTen = false;
+                    this.maSuatChieu = this.dsSuatChieu[0].ma;
+                    this.maLoaiVe = this.dsLoaiVe[0].ma;
+                    this.soLuong = 1;
+                    this.comboBapNuoc = false;
+                    this.xacNhan = null;
+                },
+                datVe() {
+                    if (!this.choPhepDatVe) {
+                        return;
+                    }
+
+                    this.xacNhan = {
+                        hoTen: this.hoTen,
+                        suatChieu: this.suatChieuDangChon,
+                        tenLoaiVe: this.loaiVeDangChon.ten,
+                        giaVe: this.giaVe,
+                        soLuong: this.soLuong,
+                        tienCombo: this.tienCombo,
+                        tongTien: this.tongTien
+                    };
+                }
+            }
+        }).mount("#app");
+    </script>
+</body>
+</html>

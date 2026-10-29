@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bài 1 - Thẻ thông tin sinh viên</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>Thẻ thông tin sinh viên</h1>
+
+        <div class="the-sv">
+            <img class="anh-sv" :src="anhDaiDien" :alt="'Ảnh đại diện của ' + hoTen">
+
+            <div>
+                <h2>{{ hoTen }}</h2>
+                <p>Mã sinh viên: <strong>{{ maSinhVien }}</strong></p>
+                <p>Lớp: <strong v-text="lop"></strong></p>
+                <p>Điểm trung bình: <strong>{{ diemTrungBinh }}</strong></p>
+                <p>
+                    Xếp loại:
+                    <span class="nhan" :class="xepLoai.lop">{{ xepLoai.ten }}</span>
+                </p>
+                <p>
+                    Trạng thái:
+                    <span v-if="dangHoc" class="nhan nhan-dang-hoc">Đang học</span>
+                    <span v-else class="nhan nhan-da-nghi">Đã nghỉ</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="nhom-nut">
+            <button @click="doiDiem(0.5)" :disabled="diemTrungBinh >= 10">Điểm +0,5</button>
+            <button @click="doiDiem(-0.5)" :disabled="diemTrungBinh <= 0">Điểm -0,5</button>
+            <button class="phu" @click="dangHoc = !dangHoc">Đổi trạng thái</button>
+            <button class="phu" @click="hienGioiThieu = !hienGioiThieu">
+                {{ hienGioiThieu ? 'Ẩn giới thiệu' : 'Hiện giới thiệu' }}
+            </button>
+        </div>
+
+        <div class="gioi-thieu" v-show="hienGioiThieu">
+            <h3>Giới thiệu</h3>
+            <p>{{ gioiThieu }}</p>
+        </div>
+    </div>
+
+    <script>
+        Vue.createApp({
+            data() {
+                return {
+                    maSinhVien: "22001584",
+                    hoTen: "Đoàn Sơn Hoàng",
+                    lop: "K67A5 - Khoa học máy tính",
+                    anhDaiDien: "anh-sinh-vien.svg",
+                    diemTrungBinh: 7.5,
+                    dangHoc: true,
+                    hienGioiThieu: true,
+                    gioiThieu: "Sinh viên năm thứ ba, đang học môn Lập trình Web với PHP, MySQL và Vue."
+                };
+            },
+            computed: {
+                xepLoai() {
+                    const diem = this.diemTrungBinh;
+
+                    // Chặn điểm ghi sai trong data() để thẻ không hiện xếp loại vô nghĩa.
+                    if (typeof diem !== "number" || Number.isNaN(diem) || diem < 0 || diem > 10) {
+                        return { ten: "Điểm không hợp lệ", lop: "nhan-loi" };
+                    }
+
+                    if (diem >= 8) {
+                        return { ten: "Giỏi", lop: "nhan-gioi" };
+                    }
+
+                    if (diem >= 6.5) {
+                        return { ten: "Khá", lop: "nhan-kha" };
+                    }
+
+                    if (diem >= 5) {
+                        return { ten: "Trung bình", lop: "nhan-trung-binh" };
+                    }
+
+                    return { ten: "Chưa đạt", lop: "nhan-chua-dat" };
+                }
+            },
+            methods: {
+                doiDiem(buoc) {
+                    const diem = Math.min(10, Math.max(0, this.diemTrungBinh + buoc));
+
+                    // Cộng số thực sinh sai số (7.5 + 0.5 - 0.5 = 7.499...), làm tròn 2 chữ số cho chắc.
+                    this.diemTrungBinh = Math.round(diem * 100) / 100;
+                }
+            }
+        }).mount("#app");
+    </script>
+</body>
+</html>

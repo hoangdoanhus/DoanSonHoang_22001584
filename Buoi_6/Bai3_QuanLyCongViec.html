@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bài 3 - Quản lý công việc cá nhân</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>Quản lý công việc cá nhân</h1>
+
+        <div class="dong">
+            <label for="ten-moi">Công việc mới</label>
+            <input id="ten-moi" type="text" v-model.trim="tenMoi" placeholder="Nhập tên công việc rồi nhấn Enter"
+                @keyup.enter="themCongViec">
+            <button @click="themCongViec">Thêm</button>
+            <p class="loi" v-if="loi">{{ loi }}</p>
+        </div>
+
+        <div class="dong">
+            <label>Lọc theo trạng thái</label>
+            <label class="chon" v-for="muc in dsBoLoc" :key="muc.ma">
+                <input type="radio" :value="muc.ma" v-model="boLoc">
+                {{ muc.ten }}
+            </label>
+        </div>
+
+        <p class="trong" v-if="dsCongViec.length === 0">Chưa có công việc nào, hãy thêm công việc đầu tiên.</p>
+        <p class="trong" v-else-if="dsHienThi.length === 0">Không có công việc nào ở trạng thái đang lọc.</p>
+
+        <ul class="ds-cong-viec" v-else>
+            <li v-for="congViec in dsHienThi" :key="congViec.id">
+                <input type="checkbox" v-model="congViec.hoanThanh">
+                <span :class="{ 'da-xong': congViec.hoanThanh }">{{ congViec.ten }}</span>
+                <button class="phu" @click="xoaCongViec(congViec.id)">Xóa</button>
+            </li>
+        </ul>
+
+        <div class="thong-ke">
+            <p>Tổng số công việc: <strong>{{ tongSo }}</strong> - chưa hoàn thành: <strong>{{ soChuaXong }}</strong></p>
+            <button class="phu" @click="xoaViecDaXong" :disabled="soDaXong === 0">
+                Xóa các việc đã hoàn thành ({{ soDaXong }})
+            </button>
+        </div>
+    </div>
+
+    <script>
+        Vue.createApp({
+            data() {
+                return {
+                    tenMoi: "",
+                    loi: "",
+                    boLoc: "tat-ca",
+                    dsBoLoc: [
+                        { ma: "tat-ca", ten: "Tất cả" },
+                        { ma: "chua-xong", ten: "Chưa hoàn thành" },
+                        { ma: "da-xong", ten: "Đã hoàn thành" }
+                    ],
+                    dsCongViec: [
+                        { id: 1, ten: "Ôn tập Vue cho buổi 6", hoanThanh: false },
+                        { id: 2, ten: "Làm bài thực hành PHP", hoanThanh: true },
+                        { id: 3, ten: "Đọc tài liệu MySQL", hoanThanh: false }
+                    ],
+                    idTiepTheo: 4
+                };
+            },
+            computed: {
+                dsHienThi() {
+                    if (this.boLoc === "chua-xong") {
+                        return this.dsCongViec.filter(cv => !cv.hoanThanh);
+                    }
+
+                    if (this.boLoc === "da-xong") {
+                        return this.dsCongViec.filter(cv => cv.hoanThanh);
+                    }
+
+                    return this.dsCongViec;
+                },
+                tongSo() {
+                    return this.dsCongViec.length;
+                },
+                soChuaXong() {
+                    return this.dsCongViec.filter(cv => !cv.hoanThanh).length;
+                },
+                soDaXong() {
+                    return this.tongSo - this.soChuaXong;
+                }
+            },
+            methods: {
+                themCongViec() {
+                    // v-model.trim đã cắt khoảng trắng nên tên chỉ gồm dấu cách sẽ thành chuỗi rỗng.
+                    if (this.tenMoi === "") {
+                        this.loi = "Tên công việc không được để trống.";
+                        return;
+                    }
+
+                    this.dsCongViec.push({
+                        id: this.idTiepTheo,
+                        ten: this.tenMoi,
+                        hoanThanh: false
+                    });
+
+                    this.idTiepTheo++;
+                    this.tenMoi = "";
+                    this.loi = "";
+                },
+                xoaCongViec(id) {
+                    this.dsCongViec = this.dsCongViec.filter(cv => cv.id !== id);
+                },
+                xoaViecDaXong() {
+                    this.dsCongViec = this.dsCongViec.filter(cv => !cv.hoanThanh);
+                }
+            }
+        }).mount("#app");
+    </script>
+</body>
+</html>
