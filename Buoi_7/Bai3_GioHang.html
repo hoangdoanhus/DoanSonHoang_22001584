@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bài 3 - Giỏ hàng với props và $emit</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>Giỏ hàng</h1>
+
+        <table v-if="dsGioHang.length > 0">
+            <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th class="phai">Đơn giá</th>
+                    <th class="phai">Số lượng</th>
+                    <th class="phai">Thành tiền</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Trình duyệt chỉ chấp nhận thẻ tr trong tbody, nên gọi component qua is="vue:..." -->
+                <tr v-for="muc in dsGioHang" :key="muc.id" is="vue:dong-gio-hang" :id="muc.id" :ten="muc.ten"
+                    :don-gia="muc.donGia" :so-luong="muc.soLuong" @doi-so-luong="capNhatSoLuong"
+                    @yeu-cau-xoa="xoaMuc"></tr>
+            </tbody>
+        </table>
+
+        <p class="trong" v-else>Giỏ hàng trống</p>
+
+        <p class="thong-ke" v-if="dsGioHang.length > 0">
+            Tổng số lượng: <strong>{{ tongSoLuong }}</strong>
+            - Tổng tiền: <span class="tong-tien">{{ dinhDangTien(tongTien) }}</span>
+        </p>
+    </div>
+
+    <script src="components/DongGioHang.js"></script>
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    dsGioHang: [
+                        { id: 1, ten: "Bút bi Thiên Long", donGia: 5000, soLuong: 2 },
+                        { id: 2, ten: "Vở ô ly 200 trang", donGia: 12000, soLuong: 3 }
+                    ]
+                };
+            },
+            computed: {
+                tongSoLuong() {
+                    return this.dsGioHang.reduce((tong, muc) => tong + muc.soLuong, 0);
+                },
+                tongTien() {
+                    return this.dsGioHang.reduce((tong, muc) => tong + muc.donGia * muc.soLuong, 0);
+                }
+            },
+            methods: {
+                dinhDangTien(soTien) {
+                    return soTien.toLocaleString("vi-VN") + " đ";
+                },
+                capNhatSoLuong(thongTin) {
+                    // Component con chỉ gửi yêu cầu, cha kiểm tra rồi mới sửa mảng dữ liệu.
+                    if (!Number.isInteger(thongTin.soLuong) || thongTin.soLuong < 1 || thongTin.soLuong > 99) {
+                        return;
+                    }
+
+                    const mucCanSua = this.dsGioHang.find(muc => muc.id === thongTin.id);
+
+                    if (mucCanSua) {
+                        mucCanSua.soLuong = thongTin.soLuong;
+                    }
+                },
+                xoaMuc(id) {
+                    this.dsGioHang = this.dsGioHang.filter(muc => muc.id !== id);
+                }
+            }
+        });
+
+        app.component("dong-gio-hang", DongGioHang);
+        app.mount("#app");
+    </script>
+</body>
+</html>

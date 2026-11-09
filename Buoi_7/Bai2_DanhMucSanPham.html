@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bài 2 - Danh mục sản phẩm bằng component</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>Danh mục sản phẩm</h1>
+        <p class="trang-thai">Tất cả thẻ bên dưới đều do cùng một component &lt;the-san-pham&gt; sinh ra.</p>
+
+        <div class="luoi">
+            <the-san-pham v-for="sanPham in dsSanPham" :key="sanPham.id" :ten="sanPham.ten" :gia="sanPham.gia"
+                :anh="sanPham.anh" :mo-ta="sanPham.moTa" :ton="sanPham.ton"></the-san-pham>
+        </div>
+    </div>
+
+    <script src="components/TheSanPham.js"></script>
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    dsSanPham: [
+                        {
+                            id: 1,
+                            ten: "Bút bi Thiên Long",
+                            gia: 5000,
+                            anh: "anh/but-bi.svg",
+                            moTa: "Bút bi mực xanh, nét 0.5mm, viết trơn và nhanh khô.",
+                            ton: 120
+                        },
+                        {
+                            id: 2,
+                            ten: "Vở ô ly 200 trang",
+                            gia: 18000,
+                            anh: "anh/quyen-vo.svg",
+                            moTa: "Giấy định lượng 80gsm, kẻ ô ly 4 dòng, bìa cứng chống thấm.",
+                            ton: 0
+                        },
+                        {
+                            id: 3,
+                            ten: "Ba lô học sinh",
+                            gia: 250000,
+                            anh: "anh/ba-lo.svg",
+                            moTa: "Ba lô vải chống nước, có ngăn riêng đựng laptop 14 inch.",
+                            ton: 15
+                        },
+                        {
+                            // Thiếu anh và moTa để thấy giá trị mặc định khai báo trong props.
+                            id: 4,
+                            ten: "Máy tính Casio 580",
+                            gia: 520000,
+                            ton: 8
+                        }
+                    ]
+                };
+            }
+        });
+
+        app.component("the-san-pham", TheSanPham);
+        app.mount("#app");
+    </script>
+</body>
+</html>
