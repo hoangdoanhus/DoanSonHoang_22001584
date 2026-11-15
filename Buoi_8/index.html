@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý sản phẩm với API PHP và Vue.js</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>Quản lý sản phẩm qua API</h1>
+        <p class="trang-thai">Dữ liệu lấy từ <code>api/products.php</code> (PHP + MySQL).</p>
+
+        <p class="loi loi-api" v-if="loi">{{ loi }}</p>
+        <p class="thanh-cong" v-if="thongBao">{{ thongBao }}</p>
+
+        <table v-if="dsSanPham.length > 0">
+            <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Tên sản phẩm</th>
+                    <th class="phai">Đơn giá</th>
+                    <th class="phai">Số lượng tồn</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="sanPham in dsSanPham" :key="sanPham.id">
+                    <td>{{ sanPham.id }}</td>
+                    <td>{{ sanPham.name }}</td>
+                    <td class="phai">{{ dinhDangTien(sanPham.price) }}</td>
+                    <td class="phai">{{ sanPham.stock }}</td>
+                    <td>
+                        <div class="nhom-nut trong-bang">
+                            <button type="button" class="phu" @click="sua(sanPham)">Sửa</button>
+                            <button type="button" class="xoa" @click="xoa(sanPham)">Xóa</button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p class="trong" v-else-if="dangTai">Đang tải danh sách sản phẩm...</p>
+        <p class="trong" v-else>Database chưa có sản phẩm nào.</p>
+
+        <p class="thong-ke">
+            Tổng số sản phẩm: <strong>{{ dsSanPham.length }}</strong>
+            - Tổng số lượng tồn: <strong>{{ tongTonKho }}</strong>
+        </p>
+
+        <h2>{{ tieuDeForm }}</h2>
+
+        <!-- novalidate: để Vue kiểm tra dữ liệu, trình duyệt không chặn submit trước. -->
+        <form @submit.prevent="luu" novalidate>
+            <div class="hang-loc">
+                <div class="dong">
+                    <label for="ten">Tên sản phẩm</label>
+                    <input id="ten" type="text" v-model="ten" placeholder="Ví dụ: Bút chì 2B">
+                </div>
+
+                <div class="dong">
+                    <label for="gia">Đơn giá (đồng)</label>
+                    <input id="gia" type="number" v-model.number="gia">
+                </div>
+
+                <div class="dong">
+                    <label for="ton">Số lượng tồn</label>
+                    <input id="ton" type="number" v-model.number="ton">
+                </div>
+            </div>
+
+            <div class="loi" v-if="dsLoi.length > 0">
+                <ul>
+                    <li v-for="moiLoi in dsLoi" :key="moiLoi">{{ moiLoi }}</li>
+                </ul>
+            </div>
+
+            <div class="nhom-nut">
+                <button type="submit" :disabled="dangLuu">{{ dangLuu ? 'Đang lưu...' : 'Lưu' }}</button>
+                <button type="button" class="phu" v-if="cheDoSua" @click="datLaiForm">Hủy sửa</button>
+                <button type="button" class="phu" :disabled="dangTai" @click="taiDanhSach">Tải lại danh sách</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const API = "api/products.php";
+
+        Vue.createApp({
+            data() {
+                return {
+                    dsSanPham: [],
+                    dangTai: false,
+                    dangLuu: false,
+                    loi: "",
+                    thongBao: "",
+                    dsLoi: [],
+                    idDangSua: null,
+                    ten: "",
+                    gia: "",
+                    ton: ""
+                };
+            },
+            computed: {
+                cheDoSua() {
+                    return this.idDangSua !== null;
+                },
+                tieuDeForm() {
+                    return this.cheDoSua ? "Sửa sản phẩm mã " + this.idDangSua : "Thêm sản phẩm";
+                },
+                tongTonKho() {
+                    return this.dsSanPham.reduce((tong, sanPham) => tong + sanPham.stock, 0);
+                }
+            },
+            mounted() {
+                this.taiDanhSach();
+            },
+            methods: {
+                dinhDangTien(gia) {
+                    return Number(gia).toLocaleString("vi-VN") + " đ";
+                },
+                async goiApi(duongDan, tuyChon) {
+                    const phanHoi = await fetch(duongDan, tuyChon);
+                    let ketQua = null;
+
+                    try {
+                        ketQua = await phanHoi.json();
+                    } catch (loiJson) {
+                        // PHP lỗi cú pháp hoặc web server trả trang HTML thì phần thân không phải JSON.
+                        throw new Error("API không trả về JSON (mã HTTP " + phanHoi.status + ").");
+                    }
+
+                    if (!ketQua || ketQua.success !== true) {
+                        throw new Error((ketQua && ketQua.message) || "API báo lỗi nhưng không kèm thông báo.");
+                    }
+
+                    return ketQua;
+                },
+                async taiDanhSach() {
+                    this.dangTai = true;
+
+                    try {
+                        const ketQua = await this.goiApi(API);
+                        this.dsSanPham = Array.isArray(ketQua.data) ? ketQua.data : [];
+                        this.loi = "";
+                    } catch (e) {
+                        this.loi = "Không tải được danh sách sản phẩm: " + e.message;
+                    } finally {
+                        this.dangTai = false;
+                    }
+                },
+                kiemTraForm() {
+                    const dsLoi = [];
+                    const ten = typeof this.ten === "string" ? this.ten.trim() : "";
+
+                    if (ten === "") {
+                        dsLoi.push("Tên sản phẩm không được để trống.");
+                    } else if (ten.length > 100) {
+                        dsLoi.push("Tên sản phẩm không được quá 100 ký tự.");
+                    }
+
+                    if (!Number.isInteger(this.gia) || this.gia <= 0) {
+                        dsLoi.push("Đơn giá phải là số nguyên lớn hơn 0.");
+                    }
+
+                    if (!Number.isInteger(this.ton) || this.ton < 0) {
+                        dsLoi.push("Số lượng tồn phải là số nguyên không âm.");
+                    }
+
+                    return dsLoi;
+                },
+                async luu() {
+                    this.loi = "";
+                    this.thongBao = "";
+                    this.dsLoi = this.kiemTraForm();
+
+                    if (this.dsLoi.length > 0) {
+                        return;
+                    }
+
+                    const duLieu = { name: this.ten.trim(), price: this.gia, stock: this.ton };
+                    const duongDan = this.cheDoSua ? API + "?id=" + this.idDangSua : API;
+                    this.dangLuu = true;
+
+                    try {
+                        const ketQua = await this.goiApi(duongDan, {
+                            method: this.cheDoSua ? "PUT" : "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(duLieu)
+                        });
+
+                        this.thongBao = ketQua.message || "Đã lưu sản phẩm.";
+                        this.datLaiForm();
+                        await this.taiDanhSach();
+                    } catch (e) {
+                        this.loi = e.message;
+                    } finally {
+                        this.dangLuu = false;
+                    }
+                },
+                sua(sanPham) {
+                    this.idDangSua = sanPham.id;
+                    this.ten = sanPham.name;
+                    this.gia = sanPham.price;
+                    this.ton = sanPham.stock;
+                    this.dsLoi = [];
+                    this.loi = "";
+                    this.thongBao = "";
+                },
+                datLaiForm() {
+                    this.idDangSua = null;
+                    this.ten = "";
+                    this.gia = "";
+                    this.ton = "";
+                    this.dsLoi = [];
+                },
+                async xoa(sanPham) {
+                    if (!confirm('Xóa sản phẩm "' + sanPham.name + '" khỏi database?')) {
+                        return;
+                    }
+
+                    this.loi = "";
+                    this.thongBao = "";
+
+                    try {
+                        const ketQua = await this.goiApi(API + "?id=" + sanPham.id, { method: "DELETE" });
+                        this.thongBao = ketQua.message || "Đã xóa sản phẩm.";
+
+                        // Đang sửa đúng sản phẩm vừa xóa thì thoát chế độ sửa, tránh gửi PUT tới id không còn tồn tại.
+                        if (this.idDangSua === sanPham.id) {
+                            this.datLaiForm();
+                        }
+
+                        await this.taiDanhSach();
+                    } catch (e) {
+                        this.loi = e.message;
+                    }
+                }
+            }
+        }).mount("#app");
+    </script>
+</body>
+</html>
