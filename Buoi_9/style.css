@@ -1,0 +1,253 @@
+body {
+    margin: 0;
+    padding: 24px 16px;
+    background: #f4f5f7;
+    color: #1f2328;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 15px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid #d8dbdf;
+    border-radius: 6px;
+}
+
+h1 {
+    margin-top: 0;
+    font-size: 22px;
+}
+
+h2 {
+    margin-top: 24px;
+    font-size: 18px;
+}
+
+p {
+    margin: 6px 0;
+}
+
+code {
+    padding: 1px 5px;
+    background: #f0f2f5;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+button {
+    padding: 6px 12px;
+    background: #0b62c4;
+    color: #ffffff;
+    border: 1px solid #0b62c4;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+button:disabled {
+    background: #c7cbd1;
+    border-color: #c7cbd1;
+    cursor: not-allowed;
+}
+
+button.phu {
+    background: #ffffff;
+    color: #1f2328;
+    border-color: #c7cbd1;
+}
+
+button.phu:disabled {
+    color: #8b9096;
+    background: #f4f5f7;
+}
+
+button.xoa {
+    background: #ffffff;
+    color: #b3261e;
+    border-color: #e4b4b0;
+}
+
+input[type="text"],
+input[type="number"] {
+    padding: 6px 8px;
+    border: 1px solid #c7cbd1;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+input[type="text"] {
+    width: 260px;
+    max-width: 100%;
+}
+
+input[type="number"] {
+    width: 130px;
+}
+
+table {
+    width: 100%;
+    margin-bottom: 12px;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 8px 10px;
+    border: 1px solid #d8dbdf;
+    text-align: left;
+}
+
+th {
+    background: #eef0f3;
+}
+
+th.phai,
+td.phai {
+    text-align: right;
+}
+
+.hang-loc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 14px 16px;
+    background: #f4f5f7;
+    border-radius: 6px;
+}
+
+.dong {
+    margin-bottom: 0;
+}
+
+.dong > label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.nhom-nut {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.nhom-nut.trong-bang {
+    margin: 0;
+}
+
+.loi {
+    margin: 10px 0;
+    color: #b3261e;
+    font-size: 14px;
+}
+
+.loi ul {
+    margin: 4px 0;
+    padding-left: 20px;
+}
+
+.loi-api {
+    padding: 8px 12px;
+    background: #fdeceb;
+    border: 1px solid #e4b4b0;
+    border-radius: 4px;
+}
+
+.thanh-cong {
+    padding: 8px 12px;
+    background: #e8f5ec;
+    border: 1px solid #a9d6b8;
+    border-radius: 4px;
+    color: #1a7f37;
+    font-size: 14px;
+}
+
+.trong {
+    padding: 12px;
+    background: #f4f5f7;
+    border: 1px dashed #c7cbd1;
+    border-radius: 4px;
+    color: #5b6168;
+}
+
+.thong-ke {
+    padding: 10px 0;
+    border-top: 1px solid #e4e6e9;
+    color: #5b6168;
+}
+
+.trang-thai {
+    color: #5b6168;
+    font-size: 14px;
+}
+
+input[type="file"] {
+    padding: 5px 0;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.anh-nho {
+    display: block;
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border: 1px solid #d8dbdf;
+    border-radius: 4px;
+    background: #f4f5f7;
+}
+
+.chua-co-anh {
+    color: #8b9096;
+    font-size: 13px;
+    font-style: italic;
+}
+
+.xem-truoc {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #f4f5f7;
+    border: 1px dashed #c7cbd1;
+    border-radius: 6px;
+}
+
+.xem-truoc img {
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border: 1px solid #d8dbdf;
+    border-radius: 4px;
+    background: #ffffff;
+}
+
+.xem-truoc p {
+    margin: 0 0 8px;
+    color: #5b6168;
+    font-size: 14px;
+}
+
+.loi-anh {
+    margin-top: 10px;
+}
+
+.phan-trang {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid #e4e6e9;
+}
+
+.phan-trang .thong-ke {
+    padding: 0;
+    border: 0;
+}
